@@ -1,0 +1,46 @@
+html, body {
+    height: 100%;            /* 确保 html 和 body 高度为 100% */
+}
+
+body {
+    display: flex;
+    flex-direction: column;  /* 垂直排列 */
+    justify-content: center;  /* 垂直居中 */
+    align-items: center;      /* 水平居中 */
+    margin: 0;               /* 去掉默认边距 */
+}
+
+.container {
+    text-align: center;       /* 文字居中 */
+    width: 100%;              /* 设置容器宽度为 100% */
+    max-width: 600px;         /* 限制最大宽度 */
+    padding: 20px;            /* 添加内边距 */
+    margin-top: -150px;        /* 向上调整位置，负值使其上移 */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 添加阴影效果 */
+    border-radius: 8px;      /* 添加圆角 */
+    background-color: #fff; /* 背景颜色 */
+}
+
+button {
+    margin: 5px;           /* 按钮之间的间距 */
+    padding: 10px 20px;    /* 按钮内边距 */
+    border: none;          /* 去掉默认边框 */
+    border-radius: 5px;    /* 添加圆角 */
+    background-color: #007BFF; /* 按钮背景色 */
+    color: white;          /* 按钮文字颜色 */
+    cursor: pointer;       /* 鼠标悬停时的光标样式 */
+}
+
+button:hover {
+    background-color: #0056b3; /* 鼠标悬停时改变背景色 */
+}
+
+input[type="text"] {
+    padding: 10px;         /* 输入框内边距 */
+    border: 1px solid #ccc; /* 输入框边框 */
+    border-radius: 5px;    /* 添加圆角 */
+    width: 100%;           /* 输入框宽度为 100% */
+    max-width: 300px;      /* 限制最大宽度 */
+    margin: 10px 0;       /* 输入框与其他元素的间距 */
+}
+

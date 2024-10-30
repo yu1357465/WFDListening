@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>听写练习</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>听写练习</h1>
+        <p id="currentSentence">当前音频: </p>
+        <p id="countdown">停顿时间: <span id="timeRemaining">50</span> 秒</p>
+        <audio id="audioPlayer" controls></audio>
+        <div id="controls">
+            <button onclick="prev()">回到上一题</button>
+            <button onclick="next()">跳到下一题</button>
+            <button onclick="toggleCountdownPause()">暂停/继续停顿时间</button>
+        </div>
+        <label for="filenameInput">更改音频文件名:</label>
+        <input type="text" id="filenameInput" placeholder="输入新文件名">
+        <button onclick="changeFilename()">更改</button>
+
+        <div>
+            <label for="pauseTimeInput">自定义停顿时间（秒）:</label>
+            <input type="number" id="pauseTimeInput" value="50" min="1">
+            <button onclick="shuffle()">乱序播放</button>
+        </div>
+    </div>
+
+
+<script>
+    let audioFiles = {{ audio_files|tojson }};
+    const audioPlayer = document.getElementById('audioPlayer');
+    const currentSentence = document.getElementById('currentSentence');
+    const filenameInput = document.getElementById('filenameInput');
+    const countdownDisplay = document.getElementById('timeRemaining');
+    const pauseTimeInput = document.getElementById('pauseTimeInput');
+    let currentIndex = 0;
+    let pauseTime = 50000; // 默认停顿时间（毫秒）
+    let countdownTimer;
+    let timeRemaining = pauseTime / 1000; // 剩余时间
+    let isCountdownPaused = false; // 倒计时暂停状态
+
+
+function playAudio() {
+    clearInterval(countdownTimer);
+    timeRemaining = pauseTime / 1000; // 重置剩余时间
+    countdownDisplay.textContent = timeRemaining; // 更新显示的时间
+
+    if (currentIndex < audioFiles.length) {
+        audioPlayer.src = `/audio/${audioFiles[currentIndex]}`;
+        currentSentence.textContent = `当前音频: ${audioFiles[currentIndex]}`;
+        audioPlayer.play();
+
+        audioPlayer.onended = () => {
+            startCountdown(timeRemaining); // 音频结束后开始倒计时
+        };
+    }
+}
+
+   function startCountdown(seconds) {
+    clearInterval(countdownTimer);
+    timeRemaining = seconds; // 初始化剩余时间
+    countdownDisplay.textContent = timeRemaining;
+
+    countdownTimer = setInterval(() => {
+        if (!isCountdownPaused) { // 只有在不暂停时才减少时间
+            timeRemaining--;
+            countdownDisplay.textContent = timeRemaining;
+
+            if (timeRemaining <= 0) {
+                clearInterval(countdownTimer);
+                currentIndex++; // 播放下一句
+                playAudio(); // 开始播放下一句
+            }
+        }
+    }, 1000);
+}
+
+    function next() {
+    audioPlayer.pause();
+    clearInterval(countdownTimer); // 停止倒计时
+    isCountdownPaused = false; // 重置暂停状态
+    currentIndex++;
+    if (currentIndex >= audioFiles.length) {
+        currentIndex = audioFiles.length - 1; // 限制最大索引
+    }
+    playAudio();
+}
+
+    function prev() {
+    audioPlayer.pause();
+    clearInterval(countdownTimer); // 停止倒计时
+    isCountdownPaused = false; // 重置暂停状态
+    currentIndex--;
+    if (currentIndex < 0) {
+        currentIndex = 0; // 限制最小索引
+    }
+    playAudio();
+}
+
+function toggleCountdownPause() {
+    isCountdownPaused = !isCountdownPaused; // 切换暂停状态
+    if (!isCountdownPaused) { // 如果不是暂停状态，继续计时
+        startCountdown(timeRemaining); // 从当前剩余时间继续
+    } else {
+        clearInterval(countdownTimer); // 停止计时器
+    }
+}
+
+    function changeFilename() {
+        const oldFilename = audioFiles[currentIndex];
+        const newFilename = filenameInput.value.trim();
+
+        if (newFilename) {
+            fetch('/rename', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `old_filename=${encodeURIComponent(oldFilename)}&new_filename=${encodeURIComponent(newFilename)}`,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`音频文件名更改为: ${newFilename}`);
+                    audioFiles[currentIndex] = newFilename;
+                } else {
+                    alert("文件重命名失败");
+                }
+            });
+        } else {
+            alert("请输入有效的文件名");
+        }
+    }
+
+    function shuffle() {
+        audioFiles.sort(() => Math.random() - 0.5); // 乱序播放
+        currentIndex = 0; // 重置索引
+        playAudio(); // 开始播放
+    }
+
+    pauseTimeInput.addEventListener('change', () => {
+        pauseTime = pauseTimeInput.value * 1000; // 更新停顿时间
+    });
+
+    // 开始播放
+    playAudio();
+</script>
+
+
+</body>
+</html>

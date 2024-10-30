@@ -1,5 +1,8 @@
 html, body {
-    height: 100%;            /* 确保 html 和 body 高度为 100% */
+    height: 100%;  /* 确保 html 和 body 高度为 100% */
+    margin: 0;     /* 去掉默认边距 */
+    font-family: Arial, sans-serif; /* 设置全局字体 */
+    background-color: #f0f0f0; /* 页面背景颜色 */
 }
 
 body {
@@ -7,7 +10,6 @@ body {
     flex-direction: column;  /* 垂直排列 */
     justify-content: center;  /* 垂直居中 */
     align-items: center;      /* 水平居中 */
-    margin: 0;               /* 去掉默认边距 */
 }
 
 .container {
@@ -15,32 +17,94 @@ body {
     width: 100%;              /* 设置容器宽度为 100% */
     max-width: 600px;         /* 限制最大宽度 */
     padding: 20px;            /* 添加内边距 */
-    margin-top: -150px;        /* 向上调整位置，负值使其上移 */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 添加阴影效果 */
-    border-radius: 8px;      /* 添加圆角 */
+    margin: -50px auto 20px;  /* 上移 50px，左右居中，下方间距 20px */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* 添加阴影效果 */
+    border-radius: 10px;      /* 添加圆角 */
     background-color: #fff; /* 背景颜色 */
 }
 
+h1 {
+    margin-bottom: 20px; /* 标题与内容间距 */
+    font-size: 24px; /* 标题大小 */
+    color: #333; /* 标题颜色 */
+}
+
 button {
-    margin: 5px;           /* 按钮之间的间距 */
-    padding: 10px 20px;    /* 按钮内边距 */
-    border: none;          /* 去掉默认边框 */
-    border-radius: 5px;    /* 添加圆角 */
+    margin: 5px;               /* 按钮之间的间距 */
+    padding: 10px 20px;        /* 按钮内边距 */
+    border: none;              /* 去掉默认边框 */
+    border-radius: 5px;        /* 添加圆角 */
     background-color: #007BFF; /* 按钮背景色 */
-    color: white;          /* 按钮文字颜色 */
-    cursor: pointer;       /* 鼠标悬停时的光标样式 */
+    color: white;              /* 按钮文字颜色 */
+    cursor: pointer;           /* 鼠标悬停时的光标样式 */
+    transition: background-color 0.3s ease; /* 动画效果 */
 }
 
 button:hover {
     background-color: #0056b3; /* 鼠标悬停时改变背景色 */
 }
 
-input[type="text"] {
-    padding: 10px;         /* 输入框内边距 */
-    border: 1px solid #ccc; /* 输入框边框 */
-    border-radius: 5px;    /* 添加圆角 */
-    width: 100%;           /* 输入框宽度为 100% */
-    max-width: 300px;      /* 限制最大宽度 */
-    margin: 10px 0;       /* 输入框与其他元素的间距 */
+input[type="text"], input[type="number"] {
+    padding: 10px;              /* 输入框内边距 */
+    border: 1px solid #ccc;     /* 输入框边框 */
+    border-radius: 5px;         /* 添加圆角 */
+    width: 100%;                /* 输入框宽度为 100% */
+    max-width: 300px;           /* 限制最大宽度 */
+    margin: 10px 0;             /* 输入框与其他元素的间距 */
 }
 
+.progress-container {
+    position: relative;         /* 设为相对定位 */
+    width: 100%;                /* 进度条宽度 */
+    background-color: #f3f3f3; /* 背景颜色 */
+    border-radius: 5px;        /* 圆角 */
+    overflow: hidden;           /* 隐藏溢出部分 */
+    margin: 20px 0;            /* 上下间距 */
+}
+
+/* 进度条样式 */
+progress {
+    appearance: none;           /* 去除默认样式 */
+    width: 100%;                /* 进度条宽度 */
+    height: 20px;               /* 进度条高度 */
+    border-radius: 5px;        /* 圆角 */
+    border: none;               /* 去除边框 */
+}
+
+/* 针对 Webkit 浏览器 */
+progress::-webkit-progress-bar {
+    background-color: #f3f3f3; /* 未完成部分颜色 */
+}
+
+progress::-webkit-progress-value {
+    background-color: #4caf50; /* 完成部分颜色 */
+    border-radius: 5px;        /* 圆角 */
+}
+
+progress::-moz-progress-bar {
+    background-color: #4caf50; /* Firefox 完成部分颜色 */
+    border-radius: 5px;        /* 圆角 */
+}
+
+/* 进度条文本样式 */
+#progressText {
+    position: absolute;         /* 绝对定位 */
+    left: 50%;                  /* 水平居中 */
+    top: 50%;                   /* 垂直居中 */
+    transform: translate(-50%, -50%); /* 调整为中心 */
+    font-size: 16px;           /* 字体大小 */
+    font-weight: bold;         /* 字体加粗 */
+    color: #333;               /* 字体颜色 */
+    z-index: 1;                /* 确保文本在进度条上面 */
+}
+
+#infoRow {
+    margin-bottom: 20px; /* 底部间距 */
+    text-align: center;   /* 水平居中对齐 */
+}
+
+#currentSentence, #countdown {
+    margin: 0;            /* 清除默认边距 */
+    font-size: 18px;      /* 字体大小 */
+    color: #555;          /* 字体颜色 */
+}

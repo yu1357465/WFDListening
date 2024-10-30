@@ -9,20 +9,34 @@
 <body>
     <div class="container">
         <h1>听写练习</h1>
-        <p id="currentSentence">当前音频: </p>
-        <p id="countdown">停顿时间: <span id="timeRemaining">50</span> 秒</p>
+        
+        <div id="infoRow" style="text-align: center; margin-bottom: 20px;">
+            <p id="currentSentence" style="display: inline; margin-right: 20px;">当前音频: </p>
+            <p id="countdown" style="display: inline;">停顿时间: <span id="timeRemaining">50</span> 秒</p>
+        </div>  
+
+        <div class="progress-container" style="position: relative; text-align: center; margin: 20px 0;">
+            <progress id="progressBar" value="0" max="100" style="width: 100%;"></progress>
+            <div id="progressText" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);">
+                0%
+            </div>
+        </div>
+        
         <audio id="audioPlayer" controls></audio>
+        
         <div id="controls">
             <button onclick="prev()">回到上一题</button>
             <button onclick="next()">跳到下一题</button>
             <button onclick="toggleCountdownPause()">暂停/继续停顿时间</button>
         </div>
+
         <label for="filenameInput">更改音频文件名:</label>
         <input type="text" id="filenameInput" placeholder="输入新文件名">
         <div>
-        <button onclick="changeFilename()">更改</button>
-        <button onclick="renameAndMove()">更改并移动</button>
+            <button onclick="changeFilename()">更改</button>
+            <button onclick="renameAndMoveFile()">更改并移动</button>
         </div>
+
         <div>
             <label for="pauseTimeInput">自定义停顿时间（秒）:</label>
             <input type="number" id="pauseTimeInput" value="50" min="1">
@@ -30,165 +44,165 @@
         </div>
     </div>
 
+    <script>
+        let audioFiles = {{ audio_files|tojson }};
+        const audioPlayer = document.getElementById('audioPlayer');
+        const currentSentence = document.getElementById('currentSentence');
+        const filenameInput = document.getElementById('filenameInput');
+        const countdownDisplay = document.getElementById('timeRemaining');
+        const pauseTimeInput = document.getElementById('pauseTimeInput');
 
-<script>
-    let audioFiles = {{ audio_files|tojson }};
-    const audioPlayer = document.getElementById('audioPlayer');
-    const currentSentence = document.getElementById('currentSentence');
-    const filenameInput = document.getElementById('filenameInput');
-    const countdownDisplay = document.getElementById('timeRemaining');
-    const pauseTimeInput = document.getElementById('pauseTimeInput');
-    let currentIndex = 0;
-    let pauseTime = 50000; // 默认停顿时间（毫秒）
-    let countdownTimer;
-    let timeRemaining = pauseTime / 1000; // 剩余时间
-    let isCountdownPaused = false; // 倒计时暂停状态
+        let currentIndex = 0;
+        let pauseTime = 50000; // 默认停顿时间（毫秒）
+        let countdownTimer;
+        let timeRemaining = pauseTime / 1000; // 剩余时间
+        let isCountdownPaused = false; // 倒计时暂停状态
 
+        function updateProgress() {
+            fetch('/get_passed_file_count')
+                .then(response => response.json())
+                .then(data => {
+                    const totalFiles = 346; // 总文件数
+                    const passedCount = data.count;
+                    const percentage = ((passedCount / totalFiles) * 100).toFixed(1);
 
-function playAudio() {
-    clearInterval(countdownTimer);
-    timeRemaining = pauseTime / 1000; // 重置剩余时间
-    countdownDisplay.textContent = timeRemaining; // 更新显示的时间
+                    document.getElementById('progressBar').value = percentage;
+                    document.getElementById('progressText').textContent = `${percentage}%`;
+                });
+        }
 
-    if (currentIndex < audioFiles.length) {
-        audioPlayer.src = `/audio/${audioFiles[currentIndex]}`;
-        currentSentence.textContent = `当前音频: ${audioFiles[currentIndex]}`;
-        audioPlayer.play();
+        document.addEventListener('DOMContentLoaded', updateProgress);
 
-        audioPlayer.onended = () => {
-            startCountdown(timeRemaining); // 音频结束后开始倒计时
-        };
-    }
-}
-
-   function startCountdown(seconds) {
-    clearInterval(countdownTimer);
-    timeRemaining = seconds; // 初始化剩余时间
-    countdownDisplay.textContent = timeRemaining;
-
-    countdownTimer = setInterval(() => {
-        if (!isCountdownPaused) { // 只有在不暂停时才减少时间
-            timeRemaining--;
+        function playAudio() {
+            clearInterval(countdownTimer);
+            timeRemaining = pauseTime / 1000;
             countdownDisplay.textContent = timeRemaining;
 
-            if (timeRemaining <= 0) {
-                clearInterval(countdownTimer);
-                currentIndex++; // 播放下一句
-                playAudio(); // 开始播放下一句
+            if (currentIndex < audioFiles.length) {
+                audioPlayer.src = `/audio/${audioFiles[currentIndex]}`;
+                currentSentence.textContent = `当前音频: ${audioFiles[currentIndex]}`;
+                audioPlayer.play();
+
+                audioPlayer.onended = () => startCountdown(timeRemaining);
             }
         }
-    }, 1000);
-}
 
-    function next() {
-    audioPlayer.pause();
-    clearInterval(countdownTimer); // 停止倒计时
-    isCountdownPaused = false; // 重置暂停状态
-    currentIndex++;
-    if (currentIndex >= audioFiles.length) {
-        currentIndex = audioFiles.length - 1; // 限制最大索引
-    }
-    playAudio();
-}
+        function startCountdown(seconds) {
+            clearInterval(countdownTimer);
+            timeRemaining = seconds;
+            countdownDisplay.textContent = timeRemaining;
 
-    function prev() {
-    audioPlayer.pause();
-    clearInterval(countdownTimer); // 停止倒计时
-    isCountdownPaused = false; // 重置暂停状态
-    currentIndex--;
-    if (currentIndex < 0) {
-        currentIndex = 0; // 限制最小索引
-    }
-    playAudio();
-}
+            countdownTimer = setInterval(() => {
+                if (!isCountdownPaused) {
+                    timeRemaining--;
+                    countdownDisplay.textContent = timeRemaining;
 
-function toggleCountdownPause() {
-    isCountdownPaused = !isCountdownPaused; // 切换暂停状态
-    if (!isCountdownPaused) { // 如果不是暂停状态，继续计时
-        startCountdown(timeRemaining); // 从当前剩余时间继续
-    } else {
-        clearInterval(countdownTimer); // 停止计时器
-    }
-}
+                    if (timeRemaining <= 0) {
+                        clearInterval(countdownTimer);
+                        currentIndex++;
+                        playAudio();
+                    }
+                }
+            }, 1000);
+        }
 
-function changeFilename() {
-    const oldFilename = audioFiles[currentIndex];
-    const newFilename = filenameInput.value.trim();
+        function next() {
+            changeIndex(1);
+            playAudio();
+        }
 
-    if (newFilename) {
-        fetch('/rename', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `old_filename=${encodeURIComponent(oldFilename)}&new_filename=${encodeURIComponent(newFilename)}`,
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                audioFiles[currentIndex] = newFilename + '.mp3'; // 更新文件名列表
-                refreshAudioList(); // 刷新音频列表
-                currentSentence.textContent = `当前音频: ${audioFiles[currentIndex]}`; // 更新当前音频显示
+        function prev() {
+            changeIndex(-1);
+            playAudio();
+        }
+
+        function changeIndex(direction) {
+            audioPlayer.pause();
+            clearInterval(countdownTimer);
+            isCountdownPaused = false;
+
+            currentIndex = Math.max(0, Math.min(currentIndex + direction, audioFiles.length - 1));
+        }
+
+        function toggleCountdownPause() {
+            isCountdownPaused = !isCountdownPaused;
+            if (!isCountdownPaused) {
+                startCountdown(timeRemaining);
             } else {
-                alert("文件重命名失败");
+                clearInterval(countdownTimer);
             }
-        });
-    } else {
-        alert("请输入有效的文件名");
-    }
-}
+        }
 
-// 刷新音频列表的函数
-function refreshAudioList() {
-    fetch('/get_audio_files') // 假设有这个接口返回音频文件列表
-        .then(response => response.json())
-        .then(files => {
-            audioFiles = files; // 更新音频文件列表
-            // 如果需要，还可以在这里更新页面上的其他元素
-        });
-}
+        function changeFilename() {
+            const oldFilename = audioFiles[currentIndex];
+            const newFilename = filenameInput.value.trim();
 
-    function renameAndMove() {
-    const oldFilename = audioFiles[currentIndex];
-    const newFilename = filenameInput.value.trim();
-    const completedFolderPath = 'C:\\Users\\ReiKa\\PycharmProjects\\WFDListening\\audio_files\\passed'; // 目标文件夹路径
-
-    if (newFilename) {
-        fetch('/rename_and_move', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `old_filename=${encodeURIComponent(oldFilename)}&new_filename=${encodeURIComponent(newFilename)}`,
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(`文件名更改并移动: ${newFilename}.mp3`);
-                audioFiles[currentIndex] = newFilename + '.mp3'; // 更新文件名列表
+            if (newFilename) {
+                fetch('/rename', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `old_filename=${encodeURIComponent(oldFilename)}&new_filename=${encodeURIComponent(newFilename)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        audioFiles[currentIndex] = newFilename + '.mp3';
+                        refreshAudioList();
+                        currentSentence.textContent = `当前音频: ${audioFiles[currentIndex]}`;
+                    } else {
+                        alert("文件重命名失败");
+                    }
+                });
             } else {
-                alert("文件重命名或移动失败");
+                alert("请输入有效的文件名");
             }
+        }
+
+        function refreshAudioList() {
+            fetch('/get_audio_files')
+                .then(response => response.json())
+                .then(files => {
+                    audioFiles = files;
+                });
+        }
+
+        function renameAndMoveFile() {
+            const newFilename = filenameInput.value.trim();
+            const oldFilename = audioFiles[currentIndex];
+
+            if (newFilename) {
+                fetch('/rename_and_move', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `old_filename=${encodeURIComponent(oldFilename)}&new_filename=${encodeURIComponent(newFilename)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateProgress();
+                        refreshAudioList();
+                        currentSentence.textContent = `当前音频: ${newFilename}.mp3`;
+                    } else {
+                        alert("文件重命名和移动失败");
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            } else {
+                alert("请输入有效的文件名");
+            }
+        }
+
+        function shuffle() {
+            audioFiles.sort(() => Math.random() - 0.5);
+            currentIndex = 0;
+            playAudio();
+        }
+
+        pauseTimeInput.addEventListener('change', () => {
+            pauseTime = pauseTimeInput.value * 1000;
         });
-    } else {
-        alert("请输入有效的文件名");
-    }
-}
 
-    function shuffle() {
-        audioFiles.sort(() => Math.random() - 0.5); // 乱序播放
-        currentIndex = 0; // 重置索引
-        playAudio(); // 开始播放
-    }
-
-    pauseTimeInput.addEventListener('change', () => {
-        pauseTime = pauseTimeInput.value * 1000; // 更新停顿时间
-    });
-
-    // 开始播放
-    playAudio();
-</script>
-
-
+        playAudio();
+    </script>
 </body>
 </html>

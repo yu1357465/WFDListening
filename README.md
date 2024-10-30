@@ -37,9 +37,6 @@ WFDListening 是一个基于 Flask 的音频听写练习应用。用户可以通
 ## 贡献
 欢迎提出问题或提交 Pull Request 来改进这个项目。
 
-## License
-本项目使用 MIT 许可证，具体内容请参阅 LICENSE 文件。
-
 ---
 
 # WFDListening
@@ -80,7 +77,3 @@ WFDListening is an audio dictation practice application based on Flask. Users ca
 
 ## Contribution
 Feel free to raise issues or submit Pull Requests to improve this project.
-
-## License
-This project is licensed under the MIT License. See the LICENSE file for details.
-```

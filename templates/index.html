@@ -19,8 +19,10 @@
         </div>
         <label for="filenameInput">更改音频文件名:</label>
         <input type="text" id="filenameInput" placeholder="输入新文件名">
+        <div>
         <button onclick="changeFilename()">更改</button>
-
+        <button onclick="renameAndMove()">更改并移动</button>
+        </div>
         <div>
             <label for="pauseTimeInput">自定义停顿时间（秒）:</label>
             <input type="number" id="pauseTimeInput" value="50" min="1">
@@ -109,31 +111,69 @@ function toggleCountdownPause() {
     }
 }
 
-    function changeFilename() {
-        const oldFilename = audioFiles[currentIndex];
-        const newFilename = filenameInput.value.trim();
+function changeFilename() {
+    const oldFilename = audioFiles[currentIndex];
+    const newFilename = filenameInput.value.trim();
 
-        if (newFilename) {
-            fetch('/rename', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `old_filename=${encodeURIComponent(oldFilename)}&new_filename=${encodeURIComponent(newFilename)}`,
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(`音频文件名更改为: ${newFilename}`);
-                    audioFiles[currentIndex] = newFilename;
-                } else {
-                    alert("文件重命名失败");
-                }
-            });
-        } else {
-            alert("请输入有效的文件名");
-        }
+    if (newFilename) {
+        fetch('/rename', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `old_filename=${encodeURIComponent(oldFilename)}&new_filename=${encodeURIComponent(newFilename)}`,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                audioFiles[currentIndex] = newFilename + '.mp3'; // 更新文件名列表
+                refreshAudioList(); // 刷新音频列表
+                currentSentence.textContent = `当前音频: ${audioFiles[currentIndex]}`; // 更新当前音频显示
+            } else {
+                alert("文件重命名失败");
+            }
+        });
+    } else {
+        alert("请输入有效的文件名");
     }
+}
+
+// 刷新音频列表的函数
+function refreshAudioList() {
+    fetch('/get_audio_files') // 假设有这个接口返回音频文件列表
+        .then(response => response.json())
+        .then(files => {
+            audioFiles = files; // 更新音频文件列表
+            // 如果需要，还可以在这里更新页面上的其他元素
+        });
+}
+
+    function renameAndMove() {
+    const oldFilename = audioFiles[currentIndex];
+    const newFilename = filenameInput.value.trim();
+    const completedFolderPath = 'C:\\Users\\ReiKa\\PycharmProjects\\WFDListening\\audio_files\\passed'; // 目标文件夹路径
+
+    if (newFilename) {
+        fetch('/rename_and_move', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `old_filename=${encodeURIComponent(oldFilename)}&new_filename=${encodeURIComponent(newFilename)}`,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`文件名更改并移动: ${newFilename}.mp3`);
+                audioFiles[currentIndex] = newFilename + '.mp3'; // 更新文件名列表
+            } else {
+                alert("文件重命名或移动失败");
+            }
+        });
+    } else {
+        alert("请输入有效的文件名");
+    }
+}
 
     function shuffle() {
         audioFiles.sort(() => Math.random() - 0.5); // 乱序播放

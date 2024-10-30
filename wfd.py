@@ -1,6 +1,7 @@
 from flask import Flask, render_template, send_from_directory, request, jsonify
 import os
 import re
+import shutil
 
 app = Flask(__name__)
 
@@ -16,6 +17,30 @@ def index():
 def audio(filename):
     return send_from_directory(AUDIO_FOLDER, filename)
 
+@app.route('/rename_and_move', methods=['POST'])
+def rename_and_move():
+    old_name = request.form['old_filename']
+    new_name = request.form['new_filename']
+    original_folder_path = r'C:\\Users\\ReiKa\\PycharmProjects\\WFDListening\\audio_files'
+    completed_folder_path = r'C:\\Users\\ReiKa\\PycharmProjects\\WFDListening\\audio_files\\passed'
+
+    old_path = os.path.join(original_folder_path, old_name)
+    new_path = os.path.join(completed_folder_path, new_name + '.mp3')
+
+    try:
+        if not os.path.exists(old_path):
+            return jsonify(success=False, message="源文件不存在")
+
+        shutil.move(old_path, new_path)
+        return jsonify(success=True, message="文件重命名并移动成功")
+    except Exception as e:
+        return jsonify(success=False, message=f"文件重命名或移动失败: {e}")
+
+@app.route('/get_audio_files', methods=['GET'])
+def get_audio_files():
+    audio_folder_path = 'audio_files'
+    files = [f for f in os.listdir(audio_folder_path) if f.endswith('.mp3')]
+    return jsonify(files)
 
 @app.route('/rename', methods=['POST'])
 def rename_file():
